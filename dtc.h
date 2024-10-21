@@ -341,6 +341,7 @@ void generate_label_tree(struct dt_info *dti, const char *name, bool allocph);
 void generate_fixups_tree(struct dt_info *dti, const char *name);
 void generate_local_fixups_tree(struct dt_info *dti, const char *name);
 bool any_fixup_tree(struct dt_info *dti, struct node *node);
+void local_fixup_phandles(struct dt_info *dti, const char *name);
 
 /* Checks */
 
@@ -356,6 +357,7 @@ struct dt_info *dt_from_blob(const char *fname);
 
 /* Tree source */
 
+void add_phandle_marker(struct dt_info *dti, struct property *prop, unsigned int offset);
 void dt_to_source(FILE *f, struct dt_info *dti);
 struct dt_info *dt_from_source(const char *f);
 
