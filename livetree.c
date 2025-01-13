@@ -1090,6 +1090,107 @@ void generate_fixups_tree(struct dt_info *dti, const char *name)
 				      dti->dt);
 }
 
+static void fixup_phandles_node(struct dt_info *dti, struct node *f)
+{
+	struct property *fp;
+
+	for_each_property(f, fp) {
+		char *fv = fp->val.val;
+		unsigned int fl = fp->val.len;
+
+		while (fl) {
+			char *fend = memchr(fv, 0, fl);
+			char *propname, *soffset;
+			struct node *n;
+			struct property *p;
+			long offset;
+
+			if (!fend) {
+				if (quiet < 1)
+					fprintf(stderr, "Warning: Malformed fixup entry for label %s",
+						fp->name);
+				break;
+			}
+
+			propname = memchr(fv, ':', fend - fv);
+			if (!propname) {
+				if (quiet < 1)
+					fprintf(stderr, "Warning: Malformed fixup entry for label %s",
+						fp->name);
+				break;
+			}
+			propname++;
+
+			soffset = memchr(propname, ':', fend - propname);
+			if (!soffset) {
+				if (quiet < 1)
+					fprintf(stderr, "Warning: Malformed fixup entry for label %s",
+						fp->name);
+				break;
+			}
+			soffset++;
+
+			/*
+			 * temporally modify the property to not have to create
+			 * a copy for the node path.
+			 */
+			*(propname - 1) = '\0';
+
+			n = get_node_by_path(dti->dt, fv);
+			if (!n && quiet < 1)
+				fprintf(stderr, "Warning: Label %s references non-existing node %s",
+					fp->name, fv);
+
+			*(propname - 1) = ':';
+
+			if (!n)
+				break;
+
+			/*
+			 * temporally modify the property to not have to create
+			 * a copy for the property name.
+			 */
+			*(soffset - 1) = '\0';
+
+			p = get_property(n, propname);
+
+			if (!p && quiet < 1)
+				fprintf(stderr, "Warning: Label %s references non-existing property %s in node %s",
+					fp->name, n->fullpath, propname);
+
+			*(soffset - 1) = ':';
+
+			if (!p)
+				break;
+
+			offset = strtol(soffset, NULL, 0);
+			if (offset < 0 || offset + 4 > p->val.len) {
+				if (quiet < 1)
+					fprintf(stderr,
+						"Warning: Label %s contains invalid offset for property %s in node %s",
+						fp->name, p->name, n->fullpath);
+				break;
+			}
+
+			property_add_marker(p, REF_PHANDLE, offset, fp->name);
+
+			fl -= fend - fv + 1;
+			fv = fend + 1;
+		}
+	}
+}
+
+void fixup_phandles(struct dt_info *dti, const char *name)
+{
+	struct node *an;
+
+	an = get_subnode(dti->dt, name);
+	if (!an)
+		return;
+
+	fixup_phandles_node(dti, an);
+}
+
 void generate_local_fixups_tree(struct dt_info *dti, const char *name)
 {
 	struct node *n = get_subnode(dti->dt, name);
