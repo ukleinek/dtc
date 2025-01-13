@@ -339,6 +339,7 @@ void sort_tree(struct dt_info *dti);
 void generate_label_tree(struct dt_info *dti, const char *name, bool allocph);
 void generate_fixups_tree(struct dt_info *dti, const char *name);
 void generate_local_fixups_tree(struct dt_info *dti, const char *name);
+bool any_fixup_tree(struct dt_info *dti, struct node *node);
 
 /* Checks */
 

@@ -896,7 +896,7 @@ static void generate_label_tree_internal(struct dt_info *dti,
 		generate_label_tree_internal(dti, an, c, allocph);
 }
 
-static bool any_fixup_tree(struct dt_info *dti, struct node *node)
+bool any_fixup_tree(struct dt_info *dti, struct node *node)
 {
 	struct node *c;
 	struct property *prop;
